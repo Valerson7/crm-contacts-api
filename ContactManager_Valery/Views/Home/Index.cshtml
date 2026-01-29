@@ -1,0 +1,2107 @@
+﻿@model List<ContactManager.Models.Contact>
+@{
+    ViewData["Title"] = "Contact Manager Pro";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    
+    <!-- Bootstrap 5 с иконками -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            --success-gradient: linear-gradient(135deg, #2a9d8f 0%, #1a7566 100%);
+            --danger-gradient: linear-gradient(135deg, #e63946 0%, #b51727 100%);
+            --warning-gradient: linear-gradient(135deg, #ff9e00 0%, #ff6d00 100%);
+            --purple-gradient: linear-gradient(135deg, #7209b7 0%, #560bad 100%);
+            --cyan-gradient: linear-gradient(135deg, #4cc9f0 0%, #2a9d8f 100%);
+            --sand-gradient: linear-gradient(135deg, #d4a574 0%, #b08968 100%); /* Песочно-коричневый градиент */
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --border-radius-lg: 20px;
+            --border-radius-md: 12px;
+            --border-radius-sm: 8px;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        * {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding: 25px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Эффект частиц на фоне */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(67, 97, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(247, 37, 133, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(76, 201, 240, 0.08) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .container-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Шапка приложения */
+        .app-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 35px;
+            background: var(--primary-gradient);
+            border-radius: var(--border-radius-lg);
+            color: white;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                transparent 100%
+            );
+            transform: rotate(30deg);
+            animation: shine 8s infinite linear;
+        }
+        
+        .app-header h1 {
+            font-weight: 800;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 1) 0%, 
+                rgba(255, 255, 255, 0.9) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+        
+        .app-header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        @@keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* СТАТИСТИКА */
+        .stats-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-md);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px rgba(67, 97, 238, 0.2);
+        }
+        
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+        }
+        
+        .stats-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stats-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 600;
+            color: #6c757d;
+        }
+        
+        /* КНОПКИ С ЭФФЕКТАМИ */
+        .btn-glow {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: 14px 30px;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 25px rgba(67, 97, 238, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        
+        .btn-glow:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 
+                0 15px 40px rgba(67, 97, 238, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: left 0.6s ease;
+        }
+        
+        .btn-glow:hover::before {
+            left: 100%;
+        }
+        
+        /* Новая кнопка Отмена с песочно-коричневым градиентом */
+        .btn-cancel-glow {
+            background: var(--sand-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: 14px 30px;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 25px rgba(180, 137, 104, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        
+        .btn-cancel-glow:hover {
+            background: linear-gradient(135deg, #b08968 0%, #8b6b47 100%);
+            color: white;
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 
+                0 15px 40px rgba(180, 137, 104, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        
+        .btn-cancel-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: left 0.6s ease;
+        }
+        
+        .btn-cancel-glow:hover::before {
+            left: 100%;
+        }
+        
+        .btn-outline-glow {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid;
+            border-image: var(--primary-gradient) 1;
+            border-radius: var(--border-radius-md);
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .btn-outline-glow:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.25);
+        }
+        
+        /* ГЛАВНАЯ КАРТОЧКА */
+        .main-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        }
+        
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(67, 97, 238, 0.05) 0%,
+                rgba(247, 37, 133, 0.05) 100%);
+            border-radius: var(--border-radius-lg);
+            z-index: -1;
+        }
+        
+        /* ТАБЛИЦА В СТИЛЕ GLASSMORPHISM */
+        .table-glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .table-glass thead {
+            background: var(--primary-gradient);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .table-glass th {
+            border: none;
+            font-weight: 700;
+            padding: 20px 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .table-glass tbody tr {
+            transition: var(--transition);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .table-glass tbody tr:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 10px 25px rgba(67, 97, 238, 0.15);
+        }
+        
+        .table-glass td {
+            padding: 18px 18px;
+            vertical-align: middle;
+            border: none;
+            font-weight: 500;
+            color: #333;
+            position: relative;
+            z-index: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Контакт аватар */
+        .contact-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            margin-right: 12px;
+            box-shadow: 
+                0 4px 15px rgba(67, 97, 238, 0.3);
+            transition: var(--transition);
+        }
+        
+        .table-glass tbody tr:hover .contact-avatar {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 
+                0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        /* Кнопки действий в таблице */
+        .action-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 3px;
+            transition: var(--transition);
+            border: none;
+            color: white;
+        }
+        
+        .btn-edit {
+            background: var(--cyan-gradient);
+        }
+        
+        .btn-delete {
+            background: var(--danger-gradient);
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.15) rotate(15deg);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* МОДАЛЬНЫЕ ОКНА */
+        .modal-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .modal-header-glass {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+            padding: 25px 30px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .form-control-glass {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(67, 97, 238, 0.2);
+            border-radius: var(--border-radius-sm);
+            padding: 14px 18px;
+            font-size: 15px;
+            transition: var(--transition);
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        
+        .form-control-glass:focus {
+            background: white;
+            border-color: #4361ee;
+            box-shadow: 
+                0 8px 30px rgba(67, 97, 238, 0.2),
+                0 0 0 4px rgba(67, 97, 238, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            outline: none;
+        }
+        
+        /* Флаги стран */
+        .country-flags-container {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .flag-option {
+            cursor: pointer;
+            text-align: center;
+            padding: 12px;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .flag-option:hover, .flag-option.active {
+            background: rgba(67, 97, 238, 0.1);
+            transform: translateY(-4px) scale(1.05);
+            border-color: #4361ee;
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.15);
+        }
+        
+        .flag {
+            width: 70px;
+            height: 45px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .flag-option:hover .flag {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        .flag.russia {
+            background: linear-gradient(to bottom, white 33%, #1c3578 33%, #1c3578 66%, #d52b1e 66%);
+        }
+        
+        .flag.belarus {
+            background: linear-gradient(to bottom, #d22730 0%, #d22730 70%, #00AF66 70%, #00AF66 100%);
+            position: relative;
+        }
+        
+        .flag.belarus::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 25px;
+            background-color: #FFF;
+        }
+        
+        .flag.ukraine {
+            background: linear-gradient(to bottom, #0057b8 50%, #ffd700 50%);
+        }
+        
+        .flag-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        /* Кнопка быстрого добавления */
+        .floating-action-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            box-shadow: 
+                0 15px 40px rgba(67, 97, 238, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            z-index: 1000;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .floating-action-btn:hover {
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 
+                0 25px 60px rgba(67, 97, 238, 0.6);
+        }
+        
+        /* Уведомления */
+        .toast-success {
+            background: var(--success-gradient) !important;
+            color: white !important;
+            border-radius: var(--border-radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 15px 40px rgba(42, 157, 143, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .toast-error {
+            background: var(--danger-gradient) !important;
+            color: white !important;
+            border-radius: var(--border-radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 15px 40px rgba(230, 57, 70, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .toast-warning {
+            background: var(--warning-gradient) !important;
+            color: white !important;
+            border-radius: var(--border-radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 15px 40px rgba(255, 158, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .toast-sand {
+            background: var(--sand-gradient) !important;
+            color: white !important;
+            border-radius: var(--border-radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 15px 40px rgba(180, 137, 104, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Поисковая строка */
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .search-input {
+            padding-left: 50px;
+            padding-right: 50px;
+            border-radius: 50px;
+            border: 2px solid rgba(67, 97, 238, 0.2);
+            font-size: 16px;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .search-input:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15),
+                        0 10px 30px rgba(67, 97, 238, 0.2);
+            background: white;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #4361ee;
+            z-index: 10;
+        }
+        
+        .clear-search {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            display: none;
+            transition: var(--transition);
+        }
+        
+        .clear-search:hover {
+            color: #e63946;
+            transform: translateY(-50%) scale(1.2);
+        }
+        
+        /* Анимации */
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        /* Адаптивность */
+        @@media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container-main {
+                padding: 0 15px;
+            }
+            
+            .app-header {
+                padding: 25px 20px;
+            }
+            
+            .app-header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-card {
+                padding: 20px;
+            }
+            
+            .btn-glow, .btn-cancel-glow {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            
+            .table-glass td, 
+            .table-glass th {
+                padding: 12px 10px;
+                font-size: 0.85rem;
+            }
+            
+            .contact-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+                margin-right: 8px;
+            }
+            
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                margin: 0 2px;
+            }
+            
+            .floating-action-btn {
+                width: 60px;
+                height: 60px;
+                bottom: 25px;
+                right: 25px;
+                font-size: 1.5rem;
+            }
+            
+            .country-flags-container {
+                gap: 10px;
+            }
+            
+            .flag {
+                width: 60px;
+                height: 40px;
+            }
+            
+            .flag-label {
+                font-size: 10px;
+            }
+            
+            .search-input {
+                padding-left: 45px;
+                padding-right: 45px;
+                font-size: 14px;
+            }
+        }
+        
+        @@media (max-width: 576px) {
+            .app-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .app-header .subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .stats-number {
+                font-size: 2rem;
+            }
+            
+            .stats-card {
+                padding: 20px 15px;
+            }
+            
+            .phone-input-group {
+                flex-direction: column;
+            }
+            
+            .phone-input-group select,
+            .phone-input-group input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Эффект частиц -->
+    <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: -1; pointer-events: none;">
+        <div class="position-absolute" style="top: 10%; left: 10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(67, 97, 238, 0.1), transparent);"></div>
+        <div class="position-absolute" style="bottom: 10%; right: 10%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(247, 37, 133, 0.1), transparent);"></div>
+    </div>
+
+    <div class="container-main">
+        <!-- Шапка приложения -->
+        <div class="app-header fade-in">
+            <h1><i class="bi bi-person-lines-fill me-3"></i>Contact Manager Pro</h1>
+            <p class="subtitle">Современный CRM для управления контактами</p>
+        </div>
+
+        <!-- Статистика -->
+        <div class="row mb-5 fade-in">
+            <div class="col-md-4 mb-4">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count</div>
+                    <div class="stats-label">Всего контактов</div>
+                    <i class="bi bi-people fs-1 mt-3" style="opacity: 0.1;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="main-card fade-in">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="mb-0">
+                        <i class="bi bi-people-fill me-2" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                        <span style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            Список контактов
+                        </span>
+                    </h3>
+                    <p class="text-muted mb-0">Управляйте вашими контактами в реальном времени</p>
+                </div>
+                <button class="btn btn-glow" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#createModal"
+                        title="Добавить новый контакт">
+                    <i class="bi bi-plus-circle me-2"></i>Новый контакт
+                </button>
+            </div>
+
+            <!-- Поиск -->
+            <div class="search-container mb-4">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="searchInput" class="form-control form-control-glass search-input" 
+                       placeholder="Поиск по имени, телефону или должности...">
+                <button id="clearSearch" class="clear-search" title="Очистить поиск">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Таблица контактов -->
+            <div class="table-responsive">
+                <table class="table table-glass">
+                    <thead>
+                        <tr>
+                            <th><i class="bi bi-hash"></i> ID</th>
+                            <th><i class="bi bi-person"></i> Имя</th>
+                            <th><i class="bi bi-phone"></i> Телефон</th>
+                            <th><i class="bi bi-briefcase"></i> Должность</th>
+                            <th><i class="bi bi-calendar"></i> Дата рождения</th>
+                            <th><i class="bi bi-activity"></i> Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsTable">
+                        @foreach (var contact in Model)
+                        {
+                            <tr id="contact-@contact.Id">
+                                <td>
+                                    <span class="badge" style="background: var(--purple-gradient); color: white; padding: 8px 12px; border-radius: 20px;">
+                                        #@contact.Id
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="contact-avatar">
+                                            @if (!string.IsNullOrEmpty(contact.Name))
+                                            {
+                                                @contact.Name[0]
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@contact.Name</div>
+                                            <small class="text-muted">Создан: @contact.CreatedDate.ToString("dd.MM.yyyy")</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-phone me-2" style="color: #4361ee;"></i>
+                                        <span class="fw-medium">@contact.GetFormattedPhone()</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(contact.JobTitle))
+                                    {
+                                        <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: #4361ee; padding: 6px 12px; border-radius: 6px;">
+                                            @contact.JobTitle
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (contact.BirthDate.HasValue)
+                                    {
+                                        <div class="fw-medium">@contact.BirthDate.Value.ToString("dd.MM.yyyy")</div>
+                                        <small class="text-muted">@GetAge(contact.BirthDate.Value) лет</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex">
+                                        <button class="action-btn btn-edit edit-btn"
+                                                data-id="@contact.Id"
+                                                data-name="@contact.Name"
+                                                data-phone="@contact.MobilePhone"
+                                                data-job="@contact.JobTitle"
+                                                data-birthdate="@(contact.BirthDate?.ToString("yyyy-MM-dd"))"
+                                                title="Редактировать контакт">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="action-btn btn-delete delete-btn"
+                                                data-id="@contact.Id"
+                                                title="Удалить контакт">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                
+                <!-- Сообщение при пустой таблице -->
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <div style="width: 100px; height: 100px; background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(247, 37, 133, 0.1)); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-people" style="font-size: 3rem; color: #4361ee;"></i>
+                            </div>
+                        </div>
+                        <h4 class="mt-3 mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Контактов пока нет</h4>
+                        <p class="text-muted mb-4">Начните управление контактами, добавив первый контакт</p>
+                        <button class="btn btn-glow" data-bs-toggle="modal" data-bs-target="#createModal">
+                            <i class="bi bi-plus-circle me-2"></i>Добавить первый контакт
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Футер -->
+        <div class="text-center mt-5 text-muted">
+            <p class="mb-2">Contact Manager Pro &copy; @DateTime.Now.Year • Разработано с <i class="bi bi-heart-fill" style="color: #e63946;"></i></p>
+            <p class="small opacity-75">Тестовое задание выполнено Валерием</p>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания контакта -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-glass">
+                <div class="modal-header modal-header-glass">
+                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Добавить новый контакт</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="createForm" novalidate>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-person me-2" style="color: #4361ee;"></i>Имя контакта *
+                            </label>
+                            <input type="text" class="form-control form-control-glass" id="createName" 
+                                   placeholder="Введите полное имя"
+                                   autocomplete="off" 
+                                   required 
+                                   maxlength="100" />
+                            <div class="invalid-feedback">Пожалуйста, введите имя контакта</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-phone me-2" style="color: #4361ee;"></i>Мобильный телефон *
+                            </label>
+                            <div class="phone-input-group mb-2">
+                                <select class="form-select form-control-glass" id="createPhoneCode">
+                                    <option value="+7">+7 (Россия)</option>
+                                    <option value="+375">+375 (Беларусь)</option>
+                                    <option value="+380">+380 (Украина)</option>
+                                </select>
+                                <input type="tel" class="form-control form-control-glass" id="createPhoneNumber" 
+                                       placeholder="XXX XXX-XX-XX"
+                                       autocomplete="off" 
+                                       required />
+                            </div>
+                            <input type="hidden" id="createFullPhone">
+                            <div class="invalid-feedback phone-error">Введите корректный номер телефона</div>
+                            <div class="form-text">Пример: +7 (912) 345-67-89</div>
+                            
+                            <!-- Флаги стран -->
+                            <div class="country-flags-container mt-3">
+                                <div class="flag-option" data-code="+7" data-target="createPhoneCode">
+                                    <div class="flag russia"></div>
+                                    <span class="flag-label">Россия</span>
+                                </div>
+                                <div class="flag-option" data-code="+375" data-target="createPhoneCode">
+                                    <div class="flag belarus"></div>
+                                    <span class="flag-label">Беларусь</span>
+                                </div>
+                                <div class="flag-option" data-code="+380" data-target="createPhoneCode">
+                                    <div class="flag ukraine"></div>
+                                    <span class="flag-label">Украина</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-briefcase me-2" style="color: #4361ee;"></i>Должность
+                            </label>
+                            <input type="text" class="form-control form-control-glass" id="createJob" 
+                                   placeholder="Введите должность"
+                                   autocomplete="off" 
+                                   maxlength="100" />
+                            <div class="form-text">Необязательное поле</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-calendar me-2" style="color: #4361ee;"></i>Дата рождения
+                            </label>
+                            <input type="date" class="form-control form-control-glass" id="createBirthDate"
+                                   max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <div class="form-text">Выберите дату рождения</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4">
+                        <!-- Улучшенная кнопка "Отмена" -->
+                        <button type="button" class="btn btn-cancel-glow" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i>Отмена
+                        </button>
+                        <button type="submit" class="btn btn-glow">
+                            <i class="bi bi-save me-2"></i>Сохранить контакт
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования контакта -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-glass">
+                <div class="modal-header modal-header-glass" style="background: var(--cyan-gradient);">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Редактировать контакт</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editForm" novalidate>
+                    <input type="hidden" id="editId">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-person me-2" style="color: #4cc9f0;"></i>Имя контакта *
+                            </label>
+                            <input type="text" class="form-control form-control-glass" id="editName" 
+                                   placeholder="Введите полное имя"
+                                   autocomplete="off" 
+                                   required 
+                                   maxlength="100" />
+                            <div class="invalid-feedback">Пожалуйста, введите имя контакта</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-phone me-2" style="color: #4cc9f0;"></i>Мобильный телефон *
+                            </label>
+                            <div class="phone-input-group mb-2">
+                                <select class="form-select form-control-glass" id="editPhoneCode">
+                                    <option value="+7">+7 (Россия)</option>
+                                    <option value="+375">+375 (Беларусь)</option>
+                                    <option value="+380">+380 (Украина)</option>
+                                </select>
+                                <input type="tel" class="form-control form-control-glass" id="editPhoneNumber" 
+                                       placeholder="XXX XXX-XX-XX"
+                                       autocomplete="off" 
+                                       required />
+                            </div>
+                            <input type="hidden" id="editFullPhone">
+                            <div class="invalid-feedback phone-error">Введите корректный номер телефона</div>
+                            
+                            <!-- Флаги стран -->
+                            <div class="country-flags-container mt-3" id="editCountryFlags">
+                                <div class="flag-option" data-code="+7" data-target="editPhoneCode">
+                                    <div class="flag russia"></div>
+                                    <span class="flag-label">Россия</span>
+                                </div>
+                                <div class="flag-option" data-code="+375" data-target="editPhoneCode">
+                                    <div class="flag belarus"></div>
+                                    <span class="flag-label">Беларусь</span>
+                                </div>
+                                <div class="flag-option" data-code="+380" data-target="editPhoneCode">
+                                    <div class="flag ukraine"></div>
+                                    <span class="flag-label">Украина</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-briefcase me-2" style="color: #4cc9f0;"></i>Должность
+                            </label>
+                            <input type="text" class="form-control form-control-glass" id="editJob" 
+                                   placeholder="Введите должность"
+                                   autocomplete="off" 
+                                   maxlength="100" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-calendar me-2" style="color: #4cc9f0;"></i>Дата рождения
+                            </label>
+                            <input type="date" class="form-control form-control-glass" id="editBirthDate"
+                                   max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4">
+                        <!-- Такая же улучшенная кнопка "Отмена" в окне редактирования -->
+                        <button type="button" class="btn btn-cancel-glow" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i>Отмена
+                        </button>
+                        <button type="submit" class="btn btn-glow" style="background: var(--cyan-gradient);">
+                            <i class="bi bi-check-circle me-2"></i>Обновить контакт
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка быстрого добавления -->
+    <button class="floating-action-btn" data-bs-toggle="modal" data-bs-target="#createModal"
+            title="Быстрое добавление контакта">
+        <i class="bi bi-plus-lg"></i>
+    </button>
+
+    <!-- Toasts для уведомлений -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="successToast" class="toast toast-success" role="alert">
+            <div class="toast-header bg-transparent border-0">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong class="me-auto">Успешно!</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="successMessage"></div>
+        </div>
+        
+        <div id="errorToast" class="toast toast-error" role="alert">
+            <div class="toast-header bg-transparent border-0">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong class="me-auto">Ошибка!</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="errorMessage"></div>
+        </div>
+        
+        <div id="warningToast" class="toast toast-warning" role="alert">
+            <div class="toast-header bg-transparent border-0">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                <strong class="me-auto">Внимание!</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="warningMessage"></div>
+        </div>
+        
+        <div id="sandToast" class="toast toast-sand" role="alert">
+            <div class="toast-header bg-transparent border-0">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong class="me-auto">Информация</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="sandMessage"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = '/api/ContactsApi';
+        let allContacts = [];
+        let isOnline = navigator.onLine;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Contact Manager Pro - Initialized');
+            
+            // Мониторинг подключения
+            window.addEventListener('online', () => {
+                isOnline = true;
+                document.getElementById('offlineIndicator').style.display = 'none';
+                showToast('success', 'Подключение восстановлено');
+            });
+            
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                document.getElementById('offlineIndicator').style.display = 'block';
+                showToast('sand', 'Потеряно подключение к интернету');
+            });
+            
+            // Инициализация приложения
+            initApplication();
+        });
+
+        function initApplication() {
+            try {
+                initEventListeners();
+                initPhoneInputs();
+                initCountryFlags();
+                initFormValidation();
+                initSearch();
+                
+                // Загружаем контакты с сервера
+                loadContacts();
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                showToast('error', 'Ошибка инициализации приложения');
+            }
+        }
+
+        function showLoading(show) {
+            let overlay = document.getElementById('loadingOverlay');
+            
+            if (show) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'loadingOverlay';
+                    overlay.className = 'loading-overlay';
+                    overlay.innerHTML = '<div class="loading-spinner"></div>';
+                    document.body.appendChild(overlay);
+                }
+                overlay.style.display = 'flex';
+            } else if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+        async function loadContacts() {
+            if (!isOnline) {
+                showToast('sand', 'Нет подключения к интернету. Используются локальные данные.');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    allContacts = data;
+                } else {
+                    allContacts = [];
+                }
+                
+                console.log(`Загружено ${allContacts.length} контактов`);
+                
+                // Обновляем статистику
+                updateStats();
+                
+                if (allContacts.length === 0) {
+                    showToast('sand', 'Контактов пока нет. Добавьте первый контакт.');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка при загрузке контактов:', error);
+                showToast('error', 'Не удалось загрузить контакты с сервера');
+                
+                // Показываем локальные данные если есть
+                if (allContacts.length > 0) {
+                    showToast('sand', 'Используются локальные данные');
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function updateStats() {
+            const statsNumber = document.querySelector('.stats-number');
+            if (statsNumber) {
+                statsNumber.textContent = allContacts.length;
+            }
+        }
+
+        function initEventListeners() {
+            // Форма создания контакта
+            const createForm = document.getElementById('createForm');
+            if (createForm) {
+                createForm.addEventListener('submit', handleCreateContact);
+            }
+            
+            // Форма редактирования контакта
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+                editForm.addEventListener('submit', handleUpdateContact);
+            }
+            
+            // Делегирование событий для кнопок таблицы
+            document.addEventListener('click', function(e) {
+                // Кнопка редактирования
+                if (e.target.closest('.edit-btn')) {
+                    const btn = e.target.closest('.edit-btn');
+                    openEditModal(btn);
+                }
+                
+                // Кнопка удаления
+                if (e.target.closest('.delete-btn')) {
+                    const btn = e.target.closest('.delete-btn');
+                    confirmDeleteContact(btn.dataset.id);
+                }
+            });
+            
+            // Сброс формы при закрытии модального окна
+            document.getElementById('createModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('createForm').reset();
+                document.getElementById('createForm').classList.remove('was-validated');
+                document.querySelectorAll('.flag-option').forEach(f => f.classList.remove('active'));
+            });
+            
+            document.getElementById('editModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('editForm').classList.remove('was-validated');
+                document.querySelectorAll('#editCountryFlags .flag-option').forEach(f => f.classList.remove('active'));
+            });
+        }
+
+        function initPhoneInputs() {
+            // Инициализация для формы создания
+            initPhoneInput('createPhoneCode', 'createPhoneNumber', 'createFullPhone');
+            // Инициализация для формы редактирования
+            initPhoneInput('editPhoneCode', 'editPhoneNumber', 'editFullPhone');
+        }
+
+        function initPhoneInput(countryCodeId, phoneNumberId, fullPhoneId) {
+            const countryCodeSelect = document.getElementById(countryCodeId);
+            const phoneNumberInput = document.getElementById(phoneNumberId);
+            const fullPhoneInput = document.getElementById(fullPhoneId);
+            
+            if (!countryCodeSelect || !phoneNumberInput || !fullPhoneInput) return;
+            
+            // Форматирование номера телефона
+            phoneNumberInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                const countryCode = countryCodeSelect.value;
+                let formatted = formatPhoneNumber(value, countryCode);
+                
+                e.target.value = formatted;
+                fullPhoneInput.value = countryCode + ' ' + formatted;
+            });
+            
+            // Изменение кода страны
+            countryCodeSelect.addEventListener('change', function() {
+                phoneNumberInput.value = '';
+                fullPhoneInput.value = '';
+                
+                switch(this.value) {
+                    case '+7': phoneNumberInput.placeholder = 'XXX XXX-XX-XX'; break;
+                    case '+375': phoneNumberInput.placeholder = 'XX XXX-XX-XX'; break;
+                    case '+380': phoneNumberInput.placeholder = 'XXX XXX-XXX'; break;
+                }
+            });
+        }
+
+        function initCountryFlags() {
+            // Инициализация флагов для формы создания
+            initCountryFlagSelection('.country-flags-container .flag-option');
+            // Инициализация флагов для формы редактирования
+            initCountryFlagSelection('#editCountryFlags .flag-option');
+        }
+
+        function initCountryFlagSelection(flagSelector) {
+            const flags = document.querySelectorAll(flagSelector);
+            
+            if (!flags.length) return;
+            
+            flags.forEach(flag => {
+                flag.addEventListener('click', function() {
+                    const code = this.getAttribute('data-code');
+                    const targetId = this.getAttribute('data-target');
+                    
+                    const countryCodeSelect = document.getElementById(targetId);
+                    if (countryCodeSelect) {
+                        countryCodeSelect.value = code;
+                        
+                        // Активируем соответствующий флаг
+                        flags.forEach(f => f.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Обновляем формат поля телефона
+                        const phoneNumberId = targetId.replace('PhoneCode', 'PhoneNumber');
+                        const phoneInput = document.getElementById(phoneNumberId);
+                        if (phoneInput) {
+                            switch(code) {
+                                case '+7': phoneInput.placeholder = 'XXX XXX-XX-XX'; break;
+                                case '+375': phoneInput.placeholder = 'XX XXX-XX-XX'; break;
+                                case '+380': phoneInput.placeholder = 'XXX XXX-XXX'; break;
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function initFormValidation() {
+            // Валидация форм
+            const forms = document.querySelectorAll('form');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }
+
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearSearchBtn = document.getElementById('clearSearch');
+            
+            if (!searchInput || !clearSearchBtn) return;
+            
+            // Поиск при вводе
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.trim().toLowerCase();
+                
+                if (searchTerm) {
+                    clearSearchBtn.style.display = 'block';
+                    filterContacts(searchTerm);
+                } else {
+                    clearSearchBtn.style.display = 'none';
+                    showAllContacts();
+                }
+            });
+            
+            // Очистка поиска
+            clearSearchBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                clearSearchBtn.style.display = 'none';
+                showAllContacts();
+                searchInput.focus();
+            });
+        }
+
+        async function handleCreateContact(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            if (!isOnline) {
+                showToast('sand', 'Нет подключения к интернету. Невозможно создать контакт.');
+                return;
+            }
+            
+            // Валидация формы
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            // Получаем данные формы
+            const phone = document.getElementById('createFullPhone').value;
+            if (!phone || phone.trim() === '') {
+                showToast('error', 'Мобильный телефон обязателен');
+                return;
+            }
+            
+            // Проверяем длину телефона
+            if (phone.length < 10) {
+                showToast('error', 'Телефон слишком короткий');
+                return;
+            }
+            
+            const data = {
+                Name: document.getElementById('createName').value.trim(),
+                MobilePhone: phone,
+                JobTitle: document.getElementById('createJob').value.trim() || null,
+                BirthDate: document.getElementById('createBirthDate').value || null
+            };
+            
+            // Проверяем имя
+            if (data.Name.length < 2) {
+                showToast('error', 'Имя должно содержать хотя бы 2 символа');
+                return;
+            }
+            
+            // Отключаем кнопку отправки
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Сохранение...';
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('success', result.message || 'Контакт успешно создан!');
+                    
+                    // Добавляем контакт в таблицу
+                    addContactToTable(result.contact || data);
+                    
+                    // Закрываем модальное окно
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
+                    modal.hide();
+                    
+                    // Сбрасываем форму
+                    form.reset();
+                    form.classList.remove('was-validated');
+                    
+                } else {
+                    // Показываем ошибки валидации
+                    if (result.errors) {
+                        showToast('error', result.errors.join('<br>'));
+                    } else if (result.message) {
+                        showToast('error', result.message);
+                    } else {
+                        showToast('error', 'Ошибка при создании контакта');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('error', 'Ошибка сети. Проверьте подключение.');
+            } finally {
+                // Включаем кнопку отправки
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-save me-2"></i>Сохранить контакт';
+                }
+                showLoading(false);
+            }
+        }
+
+        async function handleUpdateContact(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const contactId = document.getElementById('editId').value;
+            
+            if (!isOnline) {
+                showToast('sand', 'Нет подключения к интернету. Невозможно обновить контакт.');
+                return;
+            }
+            
+            // Валидация формы
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            // Получаем данные формы
+            const phone = document.getElementById('editFullPhone').value;
+            if (!phone) {
+                showToast('error', 'Мобильный телефон обязателен');
+                return;
+            }
+            
+            const data = {
+                Id: parseInt(contactId),
+                Name: document.getElementById('editName').value.trim(),
+                MobilePhone: phone,
+                JobTitle: document.getElementById('editJob').value.trim() || null,
+                BirthDate: document.getElementById('editBirthDate').value || null
+            };
+            
+            // Проверяем имя
+            if (data.Name.length < 2) {
+                showToast('error', 'Имя должно содержать хотя бы 2 символа');
+                return;
+            }
+            
+            // Проверяем длину телефона
+            if (data.MobilePhone.length < 10) {
+                showToast('error', 'Телефон слишком короткий');
+                return;
+            }
+            
+            // Отключаем кнопку отправки
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Обновление...';
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/${contactId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('success', result.message || 'Контакт успешно обновлен!');
+                    
+                    // Обновляем контакт в таблице
+                    updateContactInTable(result.contact || data);
+                    
+                    // Закрываем модальное окно
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+                    modal.hide();
+                    
+                } else if (response.status === 404) {
+                    showToast('error', 'Контакт не найден');
+                } else {
+                    // Показываем ошибки валидации
+                    if (result.errors) {
+                        showToast('error', result.errors.join('<br>'));
+                    } else if (result.message) {
+                        showToast('error', result.message);
+                    } else {
+                        showToast('error', 'Ошибка при обновлении контакта');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('error', 'Ошибка сети. Проверьте подключение.');
+            } finally {
+                // Включаем кнопку отправки
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Обновить контакт';
+                }
+                showLoading(false);
+            }
+        }
+
+        async function confirmDeleteContact(contactId) {
+            if (!confirm('Вы уверены, что хотите удалить этот контакт?')) return;
+            
+            if (!isOnline) {
+                showToast('sand', 'Нет подключения к интернету. Невозможно удалить контакт.');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/${contactId}`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('success', result.message || 'Контакт успешно удален!');
+                    
+                    // Удаляем строку из таблицы
+                    const row = document.getElementById(`contact-${contactId}`);
+                    if (row) {
+                        row.style.transition = 'all 0.3s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(100px)';
+                        setTimeout(() => {
+                            row.remove();
+                            
+                            // Проверяем, пустая ли таблица
+                            checkIfTableEmpty();
+                        }, 300);
+                    }
+                    
+                    // Удаляем из массива контактов
+                    allContacts = allContacts.filter(c => c.id != contactId);
+                    
+                    // Обновляем статистику
+                    updateStats();
+                    
+                } else if (response.status === 404) {
+                    showToast('error', 'Контакт не найден');
+                } else {
+                    showToast('error', result.message || 'Ошибка при удалении контакта');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('error', 'Ошибка сети. Проверьте подключение.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function openEditModal(btn) {
+            const contactId = btn.dataset.id;
+            const name = btn.dataset.name;
+            const phone = btn.dataset.phone;
+            const job = btn.dataset.job;
+            const birthdate = btn.dataset.birthdate;
+            
+            // Разбираем телефон
+            let phoneCode = '+7';
+            let phoneNumber = '';
+            
+            if (phone) {
+                if (phone.startsWith('+7')) {
+                    phoneCode = '+7';
+                    phoneNumber = phone.substring(3).trim();
+                } else if (phone.startsWith('+375')) {
+                    phoneCode = '+375';
+                    phoneNumber = phone.substring(5).trim();
+                } else if (phone.startsWith('+380')) {
+                    phoneCode = '+380';
+                    phoneNumber = phone.substring(5).trim();
+                }
+            }
+            
+            // Заполняем форму
+            document.getElementById('editId').value = contactId;
+            document.getElementById('editName').value = name;
+            document.getElementById('editPhoneCode').value = phoneCode;
+            document.getElementById('editPhoneNumber').value = phoneNumber;
+            document.getElementById('editFullPhone').value = phone;
+            document.getElementById('editJob').value = job || '';
+            document.getElementById('editBirthDate').value = birthdate || '';
+            
+            // Активируем соответствующий флаг
+            const flags = document.querySelectorAll('#editCountryFlags .flag-option');
+            flags.forEach(flag => {
+                if (flag.getAttribute('data-code') === phoneCode) {
+                    flag.classList.add('active');
+                } else {
+                    flag.classList.remove('active');
+                }
+            });
+            
+            // Открываем модальное окно
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        function addContactToTable(contact) {
+            const tbody = document.getElementById('contactsTable');
+            
+            // Если таблица пустая, удаляем сообщение о пустой таблице
+            const emptyMessage = tbody.querySelector('.text-center');
+            if (emptyMessage && emptyMessage.closest('tr')) {
+                emptyMessage.closest('tr').remove();
+            }
+            
+            // Создаем новую строку
+            const row = document.createElement('tr');
+            row.id = `contact-${contact.id}`;
+            
+            // Форматируем дату рождения
+            let birthDateFormatted = '—';
+            let age = '';
+            if (contact.birthDate) {
+                const date = new Date(contact.birthDate);
+                if (!isNaN(date.getTime())) {
+                    birthDateFormatted = date.toLocaleDateString('ru-RU');
+                    age = getAgeFromDate(date);
+                }
+            }
+            
+            // Создаем HTML строки
+            row.innerHTML = `
+                <td>
+                    <span class="badge" style="background: var(--purple-gradient); color: white; padding: 8px 12px; border-radius: 20px;">
+                        #${contact.id}
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="contact-avatar">
+                            ${contact.name ? contact.name[0] : '?'}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">${contact.name}</div>
+                            <small class="text-muted">Создан: ${new Date().toLocaleDateString('ru-RU')}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-phone me-2" style="color: #4361ee;"></i>
+                        <span class="fw-medium">${contact.mobilePhone || ''}</span>
+                    </div>
+                </td>
+                <td>
+                    ${contact.jobTitle ? 
+                        `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: #4361ee; padding: 6px 12px; border-radius: 6px;">
+                            ${contact.jobTitle}
+                        </span>` : 
+                        '<span class="text-muted">—</span>'}
+                </td>
+                <td>
+                    ${birthDateFormatted !== '—' ? 
+                        `<div class="fw-medium">${birthDateFormatted}</div>
+                         <small class="text-muted">${age}</small>` : 
+                        '<span class="text-muted">—</span>'}
+                </td>
+                <td>
+                    <div class="d-flex">
+                        <button class="action-btn btn-edit edit-btn"
+                                data-id="${contact.id}"
+                                data-name="${contact.name}"
+                                data-phone="${contact.mobilePhone}"
+                                data-job="${contact.jobTitle || ''}"
+                                data-birthdate="${contact.birthDate || ''}"
+                                title="Редактировать контакт">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="action-btn btn-delete delete-btn"
+                                data-id="${contact.id}"
+                                title="Удалить контакт">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            
+            // Добавляем анимацию
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(20px)';
+            
+            // Добавляем строку в таблицу
+            tbody.appendChild(row);
+            
+            // Запускаем анимацию
+            setTimeout(() => {
+                row.style.transition = 'all 0.6s ease';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // Добавляем в массив контактов
+            allContacts.push(contact);
+            
+            // Обновляем статистику
+            updateStats();
+        }
+
+        function updateContactInTable(contact) {
+            const row = document.getElementById(`contact-${contact.id}`);
+            
+            if (!row) return;
+            
+            // Обновляем данные в строке
+            const avatar = row.querySelector('.contact-avatar');
+            if (avatar && contact.name) {
+                avatar.textContent = contact.name[0];
+            }
+            
+            const nameCell = row.querySelector('td:nth-child(2) .fw-semibold');
+            if (nameCell) {
+                nameCell.textContent = contact.name || '';
+            }
+            
+            const phoneCell = row.querySelector('td:nth-child(3) .fw-medium');
+            if (phoneCell) {
+                phoneCell.textContent = contact.mobilePhone || '';
+            }
+            
+            const jobCell = row.querySelector('td:nth-child(4)');
+            if (jobCell) {
+                if (contact.jobTitle) {
+                    jobCell.innerHTML = `
+                        <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: #4361ee; padding: 6px 12px; border-radius: 6px;">
+                            ${contact.jobTitle}
+                        </span>
+                    `;
+                } else {
+                    jobCell.innerHTML = '<span class="text-muted">—</span>';
+                }
+            }
+            
+            // Обновляем дату рождения
+            const birthDateCell = row.querySelector('td:nth-child(5)');
+            if (birthDateCell) {
+                let birthDateFormatted = '—';
+                let age = '';
+                if (contact.birthDate) {
+                    const date = new Date(contact.birthDate);
+                    if (!isNaN(date.getTime())) {
+                        birthDateFormatted = date.toLocaleDateString('ru-RU');
+                        age = getAgeFromDate(date);
+                    }
+                }
+                
+                if (birthDateFormatted !== '—') {
+                    birthDateCell.innerHTML = `
+                        <div class="fw-medium">${birthDateFormatted}</div>
+                        <small class="text-muted">${age}</small>
+                    `;
+                } else {
+                    birthDateCell.innerHTML = '<span class="text-muted">—</span>';
+                }
+            }
+            
+            // Обновляем data-атрибуты кнопок
+            const editBtn = row.querySelector('.edit-btn');
+            if (editBtn) {
+                editBtn.dataset.name = contact.name || '';
+                editBtn.dataset.phone = contact.mobilePhone || '';
+                editBtn.dataset.job = contact.jobTitle || '';
+                editBtn.dataset.birthdate = contact.birthDate || '';
+            }
+            
+            // Обновляем в массиве контактов
+            const index = allContacts.findIndex(c => c.id == contact.id);
+            if (index !== -1) {
+                allContacts[index] = { ...allContacts[index], ...contact };
+            }
+            
+            // Добавляем анимацию обновления
+            row.style.transition = 'all 0.3s ease';
+            row.style.background = 'rgba(76, 201, 240, 0.1)';
+            setTimeout(() => {
+                row.style.background = '';
+            }, 1000);
+        }
+
+        function filterContacts(searchTerm) {
+            const tbody = document.getElementById('contactsTable');
+            const rows = tbody.querySelectorAll('tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Показываем сообщение если ничего не найдено
+            showNoResultsMessage(visibleCount === 0);
+        }
+
+        function showAllContacts() {
+            const tbody = document.getElementById('contactsTable');
+            const rows = tbody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            // Скрываем сообщение "ничего не найдено"
+            showNoResultsMessage(false);
+        }
+
+        function showNoResultsMessage(show) {
+            let noResultsRow = document.getElementById('noResultsMessage');
+            
+            if (show && !noResultsRow) {
+                const tbody = document.getElementById('contactsTable');
+                noResultsRow = document.createElement('tr');
+                noResultsRow.id = 'noResultsMessage';
+                noResultsRow.innerHTML = `
+                    <td colspan="6">
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 109, 0, 0.1)); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-search" style="font-size: 2rem; color: #ff9e00;"></i>
+                                </div>
+                            </div>
+                            <h4 class="mt-3 mb-3" style="color: #ff9e00;">Ничего не найдено</h4>
+                            <p class="text-muted mb-4">Попробуйте изменить поисковый запрос</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(noResultsRow);
+            } else if (!show && noResultsRow) {
+                noResultsRow.remove();
+            }
+        }
+
+        function checkIfTableEmpty() {
+            const tbody = document.getElementById('contactsTable');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 0 || (rows.length === 1 && rows[0].id === 'noResultsMessage')) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(247, 37, 133, 0.1)); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-people" style="font-size: 3rem; color: #4361ee;"></i>
+                                    </div>
+                                </div>
+                                <h4 class="mt-3 mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Контактов пока нет</h4>
+                                <p class="text-muted mb-4">Начните управление контактами, добавив первый контакт</p>
+                                <button class="btn btn-glow" data-bs-toggle="modal" data-bs-target="#createModal">
+                                    <i class="bi bi-plus-circle me-2"></i>Добавить первый контакт
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function showToast(type, message) {
+            const toastEl = document.getElementById(type + 'Toast');
+            const messageEl = toastEl ? toastEl.querySelector('.toast-body') : null;
+            
+            if (!toastEl || !messageEl) {
+                console.warn('Toast element not found:', type);
+                return;
+            }
+            
+            messageEl.innerHTML = message;
+            
+            const toast = new bootstrap.Toast(toastEl, {
+                animation: true,
+                autohide: true,
+                delay: 3000
+            });
+            
+            toast.show();
+        }
+
+        // Вспомогательные функции для работы с телефонами
+        function formatPhoneNumber(digits, countryCode) {
+            if (!digits) return '';
+            
+            let formatted = digits;
+            
+            switch(countryCode) {
+                case '+7': // Россия
+                    if (digits.length === 10) {
+                        formatted = digits.substring(0, 3) + ' ' + digits.substring(3, 6) + ' ' + digits.substring(6, 8) + ' ' + digits.substring(8, 10);
+                    } else if (digits.length > 3) {
+                        formatted = digits.substring(0, 3) + ' ' + digits.substring(3);
+                    }
+                    break;
+                    
+                case '+375': // Беларусь
+                    if (digits.length === 9) {
+                        formatted = digits.substring(0, 2) + ' ' + digits.substring(2, 5) + ' ' + digits.substring(5, 7) + ' ' + digits.substring(7, 9);
+                    } else if (digits.length > 2) {
+                        formatted = digits.substring(0, 2) + ' ' + digits.substring(2);
+                    }
+                    break;
+                    
+                case '+380': // Украина
+                    if (digits.length === 9) {
+                        formatted = digits.substring(0, 3) + ' ' + digits.substring(3, 6) + ' ' + digits.substring(6, 9);
+                    } else if (digits.length > 3) {
+                        formatted = digits.substring(0, 3) + ' ' + digits.substring(3);
+                    }
+                    break;
+            }
+            
+            return formatted;
+        }
+
+        function getAgeFromDate(birthDate) {
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            return age + ' лет';
+        }
+    </script>
+</body>
+</html>
+
+@functions {
+    private string GetAge(DateTime birthDate)
+    {
+        try
+        {
+            var today = DateTime.Today;
+            var age = today.Year - birthDate.Year;
+            if (birthDate.Date > today.AddYears(-age)) age--;
+            return age.ToString() + " лет";
+        }
+        catch
+        {
+            return "—";
+        }
+    }
+}

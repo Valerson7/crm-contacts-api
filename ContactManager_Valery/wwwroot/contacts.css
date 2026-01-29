@@ -1,0 +1,420 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
+namespace ContactManager.Models
+{
+    public class Contact
+    {
+        public int Id { get; set; }
+        
+        [Required(ErrorMessage = "Имя обязательно")]
+        [Display(Name = "Имя")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Имя должно содержать от 2 до 100 символов")]
+        public string Name { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Email обязателен")]
+        [EmailAddress(ErrorMessage = "Некорректный email адрес")]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = string.Empty;
+        
+        [Display(Name = "Телефон")]
+        [RegularExpression(@"^(\+7|8|7)?[\s\-]?\(?[0-9]{3}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$", 
+            ErrorMessage = "Неверный формат телефона. Пример: +7 999 123-45-67")]
+        public string? Phone { get; set; }
+        
+        [Required(ErrorMessage = "Мобильный телефон обязателен")]
+        [Display(Name = "Мобильный телефон")]
+        [RegularExpression(@"^(\+7|8|7)?[\s\-]?\(?[0-9]{3}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$", 
+            ErrorMessage = "Неверный формат мобильного телефона. Пример: +7 999 123-45-67")]
+        public string MobilePhone { get; set; } = string.Empty;
+        
+        [Display(Name = "Дата рождения")]
+        [DataType(DataType.Date)]
+        [BirthDateValidation(ErrorMessage = "Дата рождения не может быть в будущем")]
+        public DateTime? BirthDate { get; set; }
+        
+        [Display(Name = "Страна")]
+        public string? Country { get; set; }
+        
+        [Display(Name = "Статус")]
+        [Required(ErrorMessage = "Статус обязателен")]
+        public string Status { get; set; } = "Активный";
+        
+        [Display(Name = "Должность")]
+        [Required(ErrorMessage = "Должность обязательна")]
+        [StringLength(100, ErrorMessage = "Должность не должна превышать 100 символов")]
+        public string JobTitle { get; set; } = string.Empty;
+        
+        [Display(Name = "Дата создания")]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        
+        [Display(Name = "Дата обновления")]
+        public DateTime UpdatedDate { get; set; } = DateTime.Now;
+
+        // ===== СТАТИЧЕСКИЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДАННЫМИ =====
+        
+        private static List<Contact>? _contacts;
+        private static readonly string DataFile = "contacts.json";
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
+        // Получить все контакты
+        public static List<Contact> GetContacts()
+        {
+            if (_contacts == null)
+            {
+                LoadContacts();
+            }
+            return _contacts ?? new List<Contact>();
+        }
+
+        // Получить контакт по ID
+        public static Contact? GetContactById(int id)
+        {
+            return GetContacts().FirstOrDefault(c => c.Id == id);
+        }
+
+        // Поиск контактов
+        public static List<Contact> SearchContacts(string searchTerm)
+        {
+            var contacts = GetContacts();
+            
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return contacts;
+            
+            searchTerm = searchTerm.ToLower();
+            
+            return contacts.Where(c =>
+                c.Name.ToLower().Contains(searchTerm) ||
+                c.Email.ToLower().Contains(searchTerm) ||
+                c.MobilePhone.Contains(searchTerm) ||
+                (c.Phone != null && c.Phone.Contains(searchTerm)) ||
+                c.JobTitle.ToLower().Contains(searchTerm) ||
+                (c.Country != null && c.Country.ToLower().Contains(searchTerm))
+            ).ToList();
+        }
+
+        // Добавить контакт
+        public static void AddContact(Contact contact)
+        {
+            var contacts = GetContacts();
+            
+            // Генерация нового ID
+            contact.Id = contacts.Any() ? contacts.Max(c => c.Id) + 1 : 1;
+            contact.CreatedDate = DateTime.Now;
+            contact.UpdatedDate = DateTime.Now;
+            
+            // Форматирование телефонов
+            contact.MobilePhone = FormatPhoneNumber(contact.MobilePhone);
+            if (!string.IsNullOrEmpty(contact.Phone))
+            {
+                contact.Phone = FormatPhoneNumber(contact.Phone);
+            }
+            
+            // Установка страны по умолчанию если не указана
+            if (string.IsNullOrEmpty(contact.Country))
+            {
+                contact.Country = "Россия";
+            }
+            
+            // Установка статуса по умолчанию если не указан
+            if (string.IsNullOrEmpty(contact.Status))
+            {
+                contact.Status = "Активный";
+            }
+            
+            contacts.Add(contact);
+            SaveContacts(contacts);
+        }
+
+        // Обновить контакт
+        public static void UpdateContact(Contact updatedContact)
+        {
+            var contacts = GetContacts();
+            var existingContact = contacts.FirstOrDefault(c => c.Id == updatedContact.Id);
+            
+            if (existingContact != null)
+            {
+                existingContact.Name = updatedContact.Name;
+                existingContact.Email = updatedContact.Email;
+                existingContact.Phone = FormatPhoneNumber(updatedContact.Phone ?? string.Empty);
+                existingContact.MobilePhone = FormatPhoneNumber(updatedContact.MobilePhone);
+                existingContact.JobTitle = updatedContact.JobTitle;
+                existingContact.BirthDate = updatedContact.BirthDate;
+                existingContact.Country = updatedContact.Country;
+                existingContact.Status = updatedContact.Status;
+                existingContact.UpdatedDate = DateTime.Now;
+                
+                SaveContacts(contacts);
+            }
+        }
+
+        // Удалить контакт
+        public static bool DeleteContact(int id)
+        {
+            var contacts = GetContacts();
+            var contact = contacts.FirstOrDefault(c => c.Id == id);
+            
+            if (contact != null)
+            {
+                contacts.Remove(contact);
+                SaveContacts(contacts);
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Сохранить контакты
+        public static void SaveContacts(List<Contact> contacts)
+        {
+            _contacts = contacts;
+            SaveToFile();
+        }
+
+        // Получить статистику
+        public static ContactStatistics GetStatistics()
+        {
+            var contacts = GetContacts();
+            
+            return new ContactStatistics
+            {
+                Total = contacts.Count,
+                Active = contacts.Count(c => c.Status == "Активный"),
+                Inactive = contacts.Count(c => c.Status == "Неактивный"),
+                OnVacation = contacts.Count(c => c.Status == "В отпуске"),
+                ByCountry = contacts
+                    .Where(c => !string.IsNullOrEmpty(c.Country))
+                    .GroupBy(c => c.Country!)
+                    .ToDictionary(g => g.Key, g => g.Count())
+            };
+        }
+
+        // ===== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ =====
+        
+        // Загрузить из файла
+        private static void LoadContacts()
+        {
+            try
+            {
+                if (File.Exists(DataFile))
+                {
+                    var json = File.ReadAllText(DataFile);
+                    _contacts = JsonSerializer.Deserialize<List<Contact>>(json, JsonOptions) ?? new List<Contact>();
+                }
+                else
+                {
+                    _contacts = GetSampleContacts();
+                    SaveToFile();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при загрузке контактов: {ex.Message}");
+                _contacts = GetSampleContacts();
+            }
+        }
+
+        // Сохранить в файл
+        private static void SaveToFile()
+        {
+            try
+            {
+                if (_contacts != null)
+                {
+                    var json = JsonSerializer.Serialize(_contacts, JsonOptions);
+                    File.WriteAllText(DataFile, json);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при сохранении контактов: {ex.Message}");
+            }
+        }
+
+        // Создание примеров контактов
+        private static List<Contact> GetSampleContacts()
+        {
+            return new List<Contact>
+            {
+                new Contact
+                {
+                    Id = 1,
+                    Name = "Иванов Иван Иванович",
+                    Email = "ivanov@example.com",
+                    MobilePhone = "+79991234567",
+                    Phone = "+78121234567",
+                    JobTitle = "Senior Developer",
+                    Country = "Россия",
+                    Status = "Активный",
+                    BirthDate = new DateTime(1990, 5, 15),
+                    CreatedDate = DateTime.Now.AddDays(-30),
+                    UpdatedDate = DateTime.Now.AddDays(-5)
+                },
+                new Contact
+                {
+                    Id = 2,
+                    Name = "Петрова Анна Сергеевна",
+                    Email = "petrova@example.com",
+                    MobilePhone = "+79992345678",
+                    Phone = "+78122345678",
+                    JobTitle = "Project Manager",
+                    Country = "Беларусь",
+                    Status = "В отпуске",
+                    BirthDate = new DateTime(1985, 8, 22),
+                    CreatedDate = DateTime.Now.AddDays(-25),
+                    UpdatedDate = DateTime.Now.AddDays(-3)
+                },
+                new Contact
+                {
+                    Id = 3,
+                    Name = "Сидоров Алексей Петрович",
+                    Email = "sidorov@example.com",
+                    MobilePhone = "+79993456789",
+                    JobTitle = "UI/UX Designer",
+                    Country = "Казахстан",
+                    Status = "Активный",
+                    BirthDate = new DateTime(1992, 11, 3),
+                    CreatedDate = DateTime.Now.AddDays(-20),
+                    UpdatedDate = DateTime.Now.AddDays(-1)
+                }
+            };
+        }
+
+        // Форматирование номера телефона
+        public static string FormatPhoneNumber(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) 
+                return phone;
+            
+            // Убираем все нецифровые символы кроме +
+            var digits = Regex.Replace(phone, @"[^\d+]", "");
+            
+            // Если номер начинается с 8, заменяем на +7
+            if (digits.StartsWith("8") && digits.Length == 11)
+            {
+                digits = "+7" + digits.Substring(1);
+            }
+            // Если номер начинается с 7 без +, добавляем +
+            else if (digits.StartsWith("7") && digits.Length == 11 && !digits.StartsWith("+"))
+            {
+                digits = "+" + digits;
+            }
+            // Если номер из 10 цифр, добавляем +7
+            else if (Regex.IsMatch(digits, @"^\d{10}$"))
+            {
+                digits = "+7" + digits;
+            }
+            
+            return digits;
+        }
+
+        // Метод для красивого отображения телефона
+        public string GetFormattedPhone()
+        {
+            return FormatPhoneForDisplay(MobilePhone);
+        }
+
+        public string? GetFormattedLandline()
+        {
+            return !string.IsNullOrEmpty(Phone) ? FormatPhoneForDisplay(Phone) : null;
+        }
+
+        private static string FormatPhoneForDisplay(string phone)
+        {
+            var formatted = FormatPhoneNumber(phone);
+            
+            if (formatted.StartsWith("+7") && formatted.Length == 12)
+            {
+                return $"+7 ({formatted.Substring(2, 3)}) {formatted.Substring(5, 3)}-{formatted.Substring(8, 2)}-{formatted.Substring(10, 2)}";
+            }
+            else if (formatted.StartsWith("+375") && formatted.Length == 13)
+            {
+                return $"+375 ({formatted.Substring(4, 2)}) {formatted.Substring(6, 3)}-{formatted.Substring(9, 2)}-{formatted.Substring(11, 2)}";
+            }
+            else if (formatted.StartsWith("+380") && formatted.Length == 13)
+            {
+                return $"+380 ({formatted.Substring(4, 2)}) {formatted.Substring(6, 3)}-{formatted.Substring(9, 2)}-{formatted.Substring(11, 2)}";
+            }
+            
+            return formatted;
+        }
+
+        // Получить первую букву имени для аватара
+        public string GetAvatarInitial()
+        {
+            if (string.IsNullOrEmpty(Name))
+                return "?";
+            
+            return Name[0].ToString().ToUpper();
+        }
+
+        // Получить цвет аватара на основе ID
+        public string GetAvatarColor()
+        {
+            var colors = new[]
+            {
+                "linear-gradient(135deg, #6A11CB 0%, #2575FC 100%)",
+                "linear-gradient(135deg, #FF6B35 0%, #FF9E6D 100%)",
+                "linear-gradient(135deg, #06d6a0 0%, #4cc9f0 100%)",
+                "linear-gradient(135deg, #8A2BE2 0%, #FFD700 100%)",
+                "linear-gradient(135deg, #E07A5F 0%, #D4A574 100%)"
+            };
+            
+            return colors[Id % colors.Length];
+        }
+    }
+
+    // ===== ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ =====
+
+    // Класс для статистики
+    public class ContactStatistics
+    {
+        public int Total { get; set; }
+        public int Active { get; set; }
+        public int Inactive { get; set; }
+        public int OnVacation { get; set; }
+        public Dictionary<string, int> ByCountry { get; set; } = new();
+    }
+
+    // Кастомный атрибут валидации для даты рождения
+    public class BirthDateValidationAttribute : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            if (value is DateTime birthDate)
+            {
+                if (birthDate > DateTime.Now)
+                {
+                    return new ValidationResult(ErrorMessage);
+                }
+                
+                if (birthDate.Year < 1900)
+                {
+                    return new ValidationResult("Дата рождения не может быть раньше 1900 года");
+                }
+            }
+            
+            return ValidationResult.Success;
+        }
+    }
+
+    // Класс для фильтрации контактов
+    public class ContactFilter
+    {
+        public string? Search { get; set; }
+        public string? Status { get; set; }
+        public string? Country { get; set; }
+        public string? SortBy { get; set; } = "Name";
+        public bool SortDescending { get; set; } = false;
+    }
+}
